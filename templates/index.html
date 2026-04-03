@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PICthermo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #d6ecff, #eef7ff);
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        h1 { color: #0077cc; }
+
+        .author { font-weight: bold; }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            width: 90%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #0077cc;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background-color: #0077cc;
+            color: white;
+            padding: 8px;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+
+        #detailsBox table {
+            font-size: 13px;
+        }
+
+        #detailsBox td {
+            padding: 6px;
+            text-align: center;
+        }
+
+        #detailsBox th {
+            padding: 6px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-style: italic;
+        }
+    </style>
+
+    <script>
+        function toggleDetails() {
+            var box = document.getElementById("detailsBox");
+            box.style.display = (box.style.display === "none") ? "block" : "none";
+        }
+
+        function toggleHistorique() {
+            var box = document.getElementById("historiqueBox");
+            box.style.display = (box.style.display === "none") ? "block" : "none";
+        }
+    </script>
+
+</head>
+
+<body>
+
+<div class="phone">
+
+<h1>Bienvenue sur PICthermo</h1>
+<p class="author">Réalisé par : SOUKAINA ELHEKKIOUI</p>
+<p>Simplifiez vos calculs de thermodynamique.</p>
+
+<div class="box">
+    <h3>Entrer les valeurs de fraction</h3>
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+
+    <table>
+        <tr>
+            <th>Entrée</th>
+            <th>Valeur</th>
+        </tr>
+
+        <tr>
+            <td>Valeur de fraction de benzène</td>
+            <td><input type="number" step="any" name="x1" required></td>
+        </tr>
+
+        <tr>
+            <td>Valeur de fraction de toluène</td>
+            <td><input type="number" step="any" name="x2" required></td>
+        </tr>
+    </table>
+
+    <br>
+    <button type="submit">Calculer</button>
+
+</form>
+</div>
+
+<div class="box">
+    <h3>Résultats</h3>
+
+    {% if result %}
+    <table>
+        <tr><th>Grandeur</th><th>Valeur</th></tr>
+        <tr><td>P bulle (kPa)</td><td>{{ result[0] }}</td></tr>
+        <tr><td>y1</td><td>{{ result[1] }}</td></tr>
+        <tr><td>y2</td><td>{{ result[2] }}</td></tr>
+        <tr><td>Somme</td><td>{{ result[3] }}</td></tr>
+    </table>
+
+    <br>
+    <button onclick="toggleDetails()">Voir détails</button>
+    {% endif %}
+</div>
+
+{% if details %}
+<div class="box" id="detailsBox" style="display:none;">
+    <h3>Voir détails de calcul</h3>
+
+    <table>
+        <tr><th>Grandeur</th><th>Formule</th><th>Application</th></tr>
+        <tr>
+            <td>P bulle</td>
+            <td>P_bulle = x1·Psat benzène + x2·Psat toluène</td>
+            <td>{{ details.application[0] }}</td>
+        </tr>
+        <tr>
+            <td>y1</td>
+            <td>y1 = (x1·Psat benzène) / P_bulle</td>
+            <td>{{ details.application[1] }}</td>
+        </tr>
+        <tr>
+            <td>y2</td>
+            <td>y2 = (x2·Psat toluène) / P_bulle</td>
+            <td>{{ details.application[2] }}</td>
+        </tr>
+        <tr>
+            <td>Somme</td>
+            <td>y1 + y2 = 1</td>
+            <td>{{ details.application[3] }}</td>
+        </tr>
+    </table>
+
+    <!-- 🔥 MODIFICATION DEMANDÉE -->
+    <div style="margin-top:10px; text-align:left;">
+        <p style="text-decoration: underline; margin-bottom:8px;"><b>Avec :</b></p>
+        <p>- Psat benzène = 101.3 kPa</p>
+        <p>- Psat toluène = 40 kPa</p>
+        <p>- Température T = 80 °C</p>
+    </div>
+
+</div>
+{% endif %}
+
+<div class="box">
+    <button onclick="toggleHistorique()">Voir historique</button>
+</div>
+
+<div class="box" id="historiqueBox" style="display:none;">
+    <h3>Historique</h3>
+
+    {% if historique %}
+    <table>
+        <tr>
+            <th>x1</th>
+            <th>x2</th>
+            <th>P</th>
+        </tr>
+
+        {% for h in historique %}
+        <tr>
+            <td>{{ h[1] }}</td>
+            <td>{{ h[2] }}</td>
+            <td>{{ h[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/delete_history">
+        <button style="background:red;">Supprimer historique</button>
+    </a>
+
+    {% else %}
+    <p>Aucun historique</p>
+    {% endif %}
+</div>
+
+<p class="footer">
+Avec PICthermo, progressez facilement en thermodynamique.
+</p>
+
+</div>
+
+</body>
+</html>
